@@ -14,7 +14,7 @@ pub fn main() {
     println!("problem load: {}", simple_solve(INPUT_2));
 
     println!("second half!");
-    println!("example load: {}", solve_complex(INPUT_1));
+    println!("example load: {}", solve_complex(INPUT_1)); // this is broken due to bad instructions in part 2
     println!("problem load: {}", solve_complex(INPUT_2));
 }
 
@@ -47,22 +47,27 @@ fn solve_complex(input: &str) -> usize {
         // Check for cycles and add current board
         if board_states.contains(&working_board) {
             // cycle detected because a duplicate board state has been found. This means we can calculate the billionth board state with a modulus.
-            println!("cycled detected that is {} iterations long.", board_states.len());
+            println!(
+                "cycled detected that is {} iterations long.",
+                board_states.len()
+            );
             break;
         }
         board_states.push(working_board.clone());
     }
-    println!("the billionth cycle is iteration: {}", 1000000000 % board_states.len());
+    println!(
+        "the billionth cycle is iteration: {}",
+        1000000000 % board_states.len()
+    );
     working_board = board_states[1000000000 % board_states.len()].clone();
     calculate_board_load(&working_board)
 }
 
-fn calculate_board_load(input: &Vec<Vec<Space>>) -> usize {
-    let mut load = 0;
-    for i in 0..input.len() {
-        load = load + calculate_row_load(&input[i]);
-    }
-    load
+fn calculate_board_load(input: &Board) -> usize {
+    input
+        .0
+        .iter()
+        .fold(0, |load, i| load + calculate_row_load(i))
 }
 
 // calculate load on a fully rolled row.
@@ -79,18 +84,15 @@ fn calculate_row_load(input: &Vec<Space>) -> usize {
     load
 }
 
-fn roll_board(input: &Vec<Vec<Space>>) -> Vec<Vec<Space>> {
-    let mut output = input.clone();
-    for i in 0..input.len() {
-        output[i] = roll_row(&input[i]);
-    }
-    output
+fn roll_board(input: &Board) -> Board {
+    Board(input.0.iter().map(roll_row).collect())
 }
 
 fn roll_row(input: &Vec<Space>) -> Vec<Space> {
-    let mut output: Vec<Space> = (0..input.len()).map(|_| Space::Empty).collect();
+    let width = input.len();
+    let mut output: Vec<Space> = vec![Space::Empty; width];
     let mut cur_destination: usize = 0;
-    for i in 0..input.len() {
+    for i in 0..width {
         match input[i] {
             Space::Stone => {
                 // simulate stone rolling by removing stone from current space, and placing it in destination space.
@@ -112,24 +114,22 @@ fn roll_row(input: &Vec<Space>) -> Vec<Space> {
 }
 
 // rotates the input board counter-clockwise.
-fn rotate_board(input: &Vec<Vec<Space>>) -> Vec<Vec<Space>> {
-    let width = input.len();
-    let mut output: Vec<Vec<Space>> = (0..width)
-        .map(|_| (0..width).map(|_| Space::Empty).collect())
-        .collect();
+fn rotate_board(input: &Board) -> Board {
+    let width = input.0.len();
+    let mut output: Board = Board(vec![vec![Space::Empty; width]; width]);
     for i in 0..width {
         for j in 0..width {
-            output[j][(width - 1) - i] = input[i][j];
+            output.0[j][(width - 1) - i] = input.0[i][j];
         }
     }
     output
 }
 
 // Reads in input with a north->south row orientation for the 2d vector.
-fn process_input(input: &str) -> Vec<Vec<Space>> {
+fn process_input(input: &str) -> Board {
     let input = input.trim();
     let width = input.lines().next().unwrap().trim().len();
-    let mut output: Vec<Vec<Space>> = (0..width).map(|_| (0..width).map(|_| Space::Empty).collect()).collect();
+    let mut output: Board = Board(vec![vec![Space::Empty; width]; width]);
     for (i, line) in input.lines().enumerate() {
         let line = line.trim();
         if line.len() != width {
@@ -142,45 +142,42 @@ fn process_input(input: &str) -> Vec<Vec<Space>> {
                 '.' => Space::Empty,
                 e => panic!("invalid input: {}", e),
             };
-            output[(width - 1) - j][i] = space;
+            output.0[(width - 1) - j][i] = space;
         }
     }
     output
 }
 
-fn print_board(input: &Vec<Vec<Space>>) {
-    for i in input {
-        let mut line = "".to_string();
-        for j in i {
-            line = line + &j.to_string();
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Board(Vec<Vec<Space>>);
+
+impl fmt::Display for Board {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut output = "".to_string();
+        for i in &self.0 {
+            let mut line = "".to_string();
+            for j in i {
+                line = line + &j.to_string();
+            }
+            output = output + &line + "\n";
         }
-        println!("{}", line);
+        f.write_str(&output)
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Space {
     Wall,
     Stone,
     Empty,
 }
 
-impl fmt::Debug for Space {
+impl fmt::Display for Space {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Space::Stone => f.write_str("O"),
             Space::Wall => f.write_str("#"),
             Space::Empty => f.write_str("."),
-        }
-    }
-}
-
-impl ToString for Space {
-    fn to_string(&self) -> String {
-        match self {
-            Space::Stone => "O".to_string(),
-            Space::Wall => "#".to_string(),
-            Space::Empty => ".".to_string(),
         }
     }
 }
@@ -194,9 +191,18 @@ mod tests {
     }
 
     #[test]
-    fn input_1() {
-        println!("{}", INPUT_1);
-        print_board(&process_input(INPUT_1));
+    fn input_1_simple() {
+        assert_eq!(simple_solve(INPUT_1), 136);
+    }
+
+    #[test]
+    fn input_2_simple() {
+        assert_eq!(simple_solve(INPUT_2), 106378);
+    }
+
+    #[test]
+    fn input_2_complex() {
+        assert_eq!(solve_complex(INPUT_2), 90795);
     }
 
     #[test]
@@ -232,42 +238,56 @@ mod tests {
 
     #[test]
     fn rotate_once() {
-        let input = [[Space::Empty, Space::Stone], [Space::Empty, Space::Empty]]
-            .map(|x| x.to_vec())
-            .to_vec();
-        let expected = [[Space::Empty, Space::Empty], [Space::Empty, Space::Stone]]
-            .map(|x| x.to_vec())
-            .to_vec();
+        let input = Board(
+            [[Space::Empty, Space::Stone], [Space::Empty, Space::Empty]]
+                .map(|x| x.to_vec())
+                .to_vec(),
+        );
+        let expected = Board(
+            [[Space::Empty, Space::Empty], [Space::Empty, Space::Stone]]
+                .map(|x| x.to_vec())
+                .to_vec(),
+        );
         assert_eq!(rotate_board(&input), expected);
     }
 
     #[test]
     fn rotate_twice() {
-        let input = [[Space::Empty, Space::Stone], [Space::Empty, Space::Empty]]
-            .map(|x| x.to_vec())
-            .to_vec();
-        let expected = [[Space::Empty, Space::Empty], [Space::Stone, Space::Empty]]
-            .map(|x| x.to_vec())
-            .to_vec();
+        let input = Board(
+            [[Space::Empty, Space::Stone], [Space::Empty, Space::Empty]]
+                .map(|x| x.to_vec())
+                .to_vec(),
+        );
+        let expected = Board(
+            [[Space::Empty, Space::Empty], [Space::Stone, Space::Empty]]
+                .map(|x| x.to_vec())
+                .to_vec(),
+        );
         assert_eq!(rotate_board(&rotate_board(&input)), expected);
     }
 
     #[test]
     fn rotate_thrice() {
-        let input = [[Space::Empty, Space::Stone], [Space::Empty, Space::Empty]]
-            .map(|x| x.to_vec())
-            .to_vec();
-        let expected = [[Space::Stone, Space::Empty], [Space::Empty, Space::Empty]]
-            .map(|x| x.to_vec())
-            .to_vec();
+        let input = Board(
+            [[Space::Empty, Space::Stone], [Space::Empty, Space::Empty]]
+                .map(|x| x.to_vec())
+                .to_vec(),
+        );
+        let expected = Board(
+            [[Space::Stone, Space::Empty], [Space::Empty, Space::Empty]]
+                .map(|x| x.to_vec())
+                .to_vec(),
+        );
         assert_eq!(rotate_board(&rotate_board(&rotate_board(&input))), expected);
     }
 
     #[test]
     fn rotate_fource() {
-        let input = [[Space::Empty, Space::Stone], [Space::Empty, Space::Empty]]
-            .map(|x| x.to_vec())
-            .to_vec();
+        let input = Board(
+            [[Space::Empty, Space::Stone], [Space::Empty, Space::Empty]]
+                .map(|x| x.to_vec())
+                .to_vec(),
+        );
         assert_eq!(
             rotate_board(&rotate_board(&rotate_board(&rotate_board(&input.clone())))),
             input
