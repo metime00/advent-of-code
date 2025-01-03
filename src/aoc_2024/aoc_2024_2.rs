@@ -77,16 +77,16 @@ fn complex_inner(input: &Vec<i32>) -> i32 {
     let unsafe_pair = Report::new(input).find_position(|window| unsafe_level(window, decreasing));
     match unsafe_pair {
         Some((index, _)) => {
-            let mut dampened1 = input.clone();
-            dampened1.remove(index);
-            let result1 = simple_inner(&dampened1);
-            let mut dampened2 = input.clone();
-            dampened2.remove(index + 1);
-            let result2 = simple_inner(&dampened2);
+            let mut dampened = input.clone();
+            dampened.remove(index);
+            let result1 = simple_inner(&dampened);
+            let mut dampened_right = input.clone();
+            dampened_right.remove(index + 1);
+            let result2 = simple_inner(&dampened_right);
             if index > 0 {
-                let mut dampened3 = input.clone();
-                dampened3.remove(index - 1);
-                let result3 = simple_inner(&dampened3);
+                let mut dampened_left = input.clone();
+                dampened_left.remove(index - 1);
+                let result3 = simple_inner(&dampened_left);
                 if result3 == 1 {
                     return 1;
                 }
