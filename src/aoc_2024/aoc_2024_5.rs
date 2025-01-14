@@ -2,18 +2,14 @@
 use itertools::{self, Itertools};
 use std::collections::{HashMap, HashSet};
 
-fn process_input(input: &str) -> (Vec<(i32, i32)>, Vec<Vec<i32>>) {
-    let rules: Vec<(i32, i32)> = input
-        .lines()
-        .filter(|x| x.contains('|'))
-        .map(|x| {
-            let mut rule = x.trim().split('|');
-            (
-                rule.next().unwrap().parse::<i32>().unwrap(),
-                rule.next().unwrap().parse::<i32>().unwrap(),
-            )
-        })
-        .collect_vec();
+fn process_input(input: &str) -> (HashMap<i32, HashSet<i32>>, Vec<Vec<i32>>) {
+    let mut reject_rules: HashMap<i32, HashSet<i32>> = HashMap::new();
+    for line in input.lines().filter(|x| x.contains('|')) {
+        let mut rule = line.trim().split('|');
+        let left = rule.next().unwrap().parse::<i32>().unwrap();
+        let right = rule.next().unwrap().parse::<i32>().unwrap();
+        reject_rules.entry(right).or_default().insert(left);
+    }
     let updates: Vec<Vec<i32>> = input
         .lines()
         .filter(|x| x.contains(','))
@@ -25,23 +21,19 @@ fn process_input(input: &str) -> (Vec<(i32, i32)>, Vec<Vec<i32>>) {
         })
         .collect_vec();
 
-    (rules, updates)
+    (reject_rules, updates)
     // Maybe make a map with the second page of each rule as the index, and a set of all the "must come before" numbers as the value.
     // Instead of using the rules as an acceptance criteria, we are inverting them to be rejection rules.
 }
 
 // Returns the middle page number if the update is correctly ordered, or 0 if the update fails one of the update rules
-fn process_update(update: &Vec<i32>, rules: &Vec<(i32, i32)>) -> i32 {
-    let mut reject_numbers: Vec<i32> = Vec::new();
+fn process_update(update: &Vec<i32>, rules: &HashMap<i32, HashSet<i32>>) -> i32 {
+    let mut reject_numbers: HashSet<i32> = HashSet::new();
     match update.iter().find(|&&x| {
         if reject_numbers.contains(&x) {
             return true;
         }
-        for &(first, second) in rules {
-            if x == second && !reject_numbers.contains(&first) {
-                reject_numbers.push(first);
-            }
-        }
+        reject_numbers.extend(rules.get(&x).cloned().unwrap_or_default());
         return false;
     }) {
         Some(_) => {
@@ -63,16 +55,16 @@ fn solve_simple(input: &str) -> i32 {
 }
 
 // Reorders failed updates to comply with ordering rules, then returns the middle number.
-fn reorder_update(update: &Vec<i32>, rules: &Vec<(i32, i32)>) -> i32 {}
+// fn reorder_update(update: &Vec<i32>, rules: &Vec<(i32, i32)>) -> i32 {}
 
-fn solve_complex(input: &str) -> i32 {
-    let (rules, updates) = process_input(input);
-    updates
-        .iter()
-        .filter(|update| process_update(update, &rules) == 0)
-        .map(|update| reorder_update(update, &rules))
-        .sum()
-}
+// fn solve_complex(input: &str) -> i32 {
+//     let (rules, updates) = process_input(input);
+//     updates
+//         .iter()
+//         .filter(|update| process_update(update, &rules) == 0)
+//         .map(|update| reorder_update(update, &rules))
+//         .sum()
+// }
 
 pub fn main() {}
 
