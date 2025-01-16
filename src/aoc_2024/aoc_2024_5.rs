@@ -23,7 +23,7 @@ fn process_input(input: &str) -> (HashMap<i32, HashSet<i32>>, Vec<Vec<i32>>) {
 
     (reject_rules, updates)
     // Maybe make a map with the second page of each rule as the index, and a set of all the "must come before" numbers as the value.
-    // Instead of using the rules as an acceptance criteria, we are inverting them to be rejection rules.
+    // Instead of using the rules as an acceptance criteria, we are inverting them to be rejection rules. If the K value is seen, any subsequent page numbers contained in V mean the update is rejected.
 }
 
 // Returns the middle page number if the update is correctly ordered, or 0 if the update fails one of the update rules
@@ -55,16 +55,29 @@ fn solve_simple(input: &str) -> i32 {
 }
 
 // Reorders failed updates to comply with ordering rules, then returns the middle number.
-// fn reorder_update(update: &Vec<i32>, rules: &Vec<(i32, i32)>) -> i32 {}
+fn reorder_update(mut update: Vec<i32>, rules: &HashMap<i32, HashSet<i32>>) -> i32 {
+    // Uses a sort_by. Look up `a` in the rejection rules. If b is in the set, then a > b. If b is not in the set, then a < b. An ascending order sort will swap `b` with `a` if `b` is in the rejection set for `a`.
+    update.sort_by(|a, b| match rules.get(a) {
+        Some(rejection_set) => {
+            if rejection_set.contains(b) {
+                std::cmp::Ordering::Greater
+            } else {
+                std::cmp::Ordering::Less
+            }
+        }
+        None => std::cmp::Ordering::Less,
+    });
+    update[update.len() / 2]
+}
 
-// fn solve_complex(input: &str) -> i32 {
-//     let (rules, updates) = process_input(input);
-//     updates
-//         .iter()
-//         .filter(|update| process_update(update, &rules) == 0)
-//         .map(|update| reorder_update(update, &rules))
-//         .sum()
-// }
+fn solve_complex(input: &str) -> i32 {
+    let (rules, updates) = process_input(input);
+    updates
+        .iter()
+        .filter(|update| process_update(update, &rules) == 0)
+        .map(|update| reorder_update(update.clone(), &rules))
+        .sum()
+}
 
 pub fn main() {}
 
@@ -83,15 +96,15 @@ mod tests {
         assert_eq!(solve_simple(INPUT_2), 4996);
     }
 
-    // #[test]
-    // fn solve_complex_input_3() {
-    //     assert_eq!(solve_complex(INPUT_3), 48);
-    // }
+    #[test]
+    fn solve_complex_input_1() {
+        assert_eq!(solve_complex(INPUT_1), 123);
+    }
 
-    // #[test]
-    // fn solve_complex_input_2() {
-    //     assert_eq!(solve_complex(INPUT_2), 89349241);
-    // }
+    #[test]
+    fn solve_complex_input_2() {
+        assert_eq!(solve_complex(INPUT_2), 6311);
+    }
 }
 
 const INPUT_1: &str = r#"

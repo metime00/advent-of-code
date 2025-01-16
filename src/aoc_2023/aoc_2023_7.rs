@@ -60,6 +60,7 @@ struct Play {
     bid: i32,
 }
 
+// TODO: change vector to HashMap
 fn calculate_hand_type(cards: [i32; 5]) -> HandType {
     let mut unique_cards: Vec<(i32, i32)> = Vec::new();
     // Count unique cards in the hand.
@@ -148,6 +149,7 @@ impl PartialEq for Hand {
     }
 }
 
+// TODO: change to match, and change the for loop to cmp, since that's how array cmp works anyway.
 impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         if self
