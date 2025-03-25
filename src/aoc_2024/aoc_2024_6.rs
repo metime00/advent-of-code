@@ -157,7 +157,7 @@ fn detect_loop(grid: &Grid) -> bool {
 }
 
 fn solve_complex(input: &str) -> i32 {
-    // BRAINSTORM encode in the traversed spaces vector a walking direction. If passing a space that was previously where the direction is to the right of the current walk direction, place a O (for the obstacle) in front of the current position, and continue traversing
+    // BRAINSTORM encode into the traversed spaces vector a walking direction. If passing a space that was previously where the direction is to the right of the current walk direction, place a O (for the obstacle) in front of the current position, and continue traversing
     // direction can be encoded as just the direction_index, and "rightness" can be checked by if the space passed has a direction of (cur_dir + 1) % 4.
     //
     // Most brute force and slow solution: test placing an obstacle in front of every space visited and see if that forms a cycle.
