@@ -9,44 +9,6 @@
 
 // Alternative approach, keep the run length encoding, with left pointer adding as you go. Right pointer has some inner logic for when it's within a contiguous block
 
-// fn process_input_run(input: &str) -> Vec<BlockRun> {
-//     input
-//         .trim()
-//         .chars()
-//         .enumerate()
-//         .map(|(idx, c)| {
-//             if idx % 2 == 1 {
-//                 BlockRun::Empty(c.to_digit(10).unwrap() as Length)
-//             } else {
-//                 BlockRun::File(c.to_digit(10).unwrap() as Length, idx / 2 as Id)
-//             }
-//         })
-//         .collect_vec()
-// }
-
-// fn sum_run(offset: usize, run: &BlockRun) -> usize {
-//     match run {
-//         &BlockRun::File(length, id) => (0..length).map(|i| (i + offset) * id).sum(),
-//         &BlockRun::Empty(_) => 0,
-//     }
-// }
-
-// fn solve_simple_run(input: &str) -> usize {
-//     let mut disk = process_input(input);
-//     let mut left_idx: usize = 0;
-//     let mut right_idx: usize = disk.len() - 1;
-//     let mut checksum: usize = 0;
-
-//     while left_idx < right_idx {
-//         match disk[left_idx] {
-//             BlockRun::Empty(length) => {}
-//             BlockRun::File(_, _) => checksum += sum_run(left_idx, &disk[left_idx]),
-//         }
-//     }
-
-//     checksum
-// }
-
 use std::{cmp::Reverse, collections::BinaryHeap, mem::swap};
 
 use itertools::Itertools;
@@ -209,9 +171,9 @@ fn solve_complex(input: &str) -> usize {
             &BlockRun::File(length, _) => offset = offset + length,
         }
     }
-    println!("{:?}", disk);
-    println!("{:?}", files);
-    println!("{:?}", free_chunks);
+    // println!("{:?}", disk);
+    // println!("{:?}", files);
+    // println!("{:?}", free_chunks);
     println!("{:?}\n", checksum);
 
     // for each file, check if there is a free space that will fit it.
@@ -232,12 +194,12 @@ fn solve_complex(input: &str) -> usize {
                 if (chunk_idx + 1) - length > 0 {
                     free_chunks[chunk_idx - length].push(Reverse(idx + length));
                 }
-                println!("{:?}", checksum);
-                println!(
-                    "idx: {:?}, length: {:?}, id: {:?}, offset: {:?}",
-                    idx, length, id, offset
-                );
-                println!("{:?}\n", free_chunks);
+                // println!("{:?}", checksum);
+                // println!(
+                //     "idx: {:?}, length: {:?}, id: {:?}, offset: {:?}",
+                //     idx, length, id, offset
+                // );
+                // println!("{:?}\n", free_chunks);
             }
             _ => panic!("all files should be of variant File"),
         }
