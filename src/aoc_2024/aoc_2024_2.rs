@@ -136,7 +136,7 @@ mod tests {
 
     #[test]
     fn solve_complex_input_2() {
-        assert_eq!(solve_complex(INPUT_2), -1);
+        assert_eq!(solve_complex(INPUT_2), 271);
     }
 }
 

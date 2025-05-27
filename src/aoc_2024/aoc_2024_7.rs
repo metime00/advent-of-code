@@ -57,8 +57,8 @@ fn operator_check_complex(entry: &Entry) -> bool {
         match elements {
             [] => total == target,
             [head, tail @ ..] => {
-                inner(target, total * head, tail)
-                    || inner(target, num_concat(total, *head), tail)
+                inner(target, num_concat(total, *head), tail)
+                    || inner(target, total * head, tail)
                     || inner(target, total + head, tail)
             }
         }
