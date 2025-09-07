@@ -228,6 +228,11 @@ mod tests {
     }
 
     #[test]
+    fn solve_complex_input_0() {
+        assert_eq!(solve_complex(INPUT_0), 2858);
+    }
+
+    #[test]
     fn solve_complex_input_1() {
         assert_eq!(solve_complex(INPUT_1), 2858);
     }
@@ -237,6 +242,10 @@ mod tests {
     //     assert_eq!(solve_complex(INPUT_2), 0);
     // }
 }
+
+const INPUT_0: &str = r#"
+12345
+"#;
 
 const INPUT_1: &str = r#"
 2333133121414131402
